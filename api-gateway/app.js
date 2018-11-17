@@ -1,38 +1,52 @@
-var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
-var cookieParser = require('cookie-parser');
+var favicon = require('serve-favicon');
 var logger = require('morgan');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 mongoose.Promise = require('bluebird');
+
+
+var index = require('./routes/index');
 var apiCatalog = require('./routes/api-catalog');
 
-var indexRouter = require('./routes/index');
-
-// Database connection
-mongoose.connect('mongodb://admin:password1@ds031892.mlab.com:31892/api-gateway', {
-  promiseLibrary: require('bluebird')
-}).then(() => console.log('mongoose connection successful')).catch((err) => console.error(err));
 
 var app = express();
+
+/**
+ *
+ * Database connection
+ */
+mongoose.connect('mongodb://admin:admin@ds125578.mlab.com:25578/api-gateway', {
+  promiseLibrary: require('bluebird')
+}).then(() => console.log('connection successful'))
+  .catch((err) => console.error(err));
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+
+// uncomment after placing your favicon in /public
+//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+
+app.use('/', index);
 app.use('/api', apiCatalog);
 
-app.use('/', indexRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  console.log('request made', request);
-  next(createError(404));
+  var err = new Error('Not Found');
+  err.status = 404;
+  next(err);
 });
 
 // error handler
@@ -46,4 +60,4 @@ app.use(function (err, req, res, next) {
   res.render('error');
 });
 
-module.exports = app
+module.exports = app;
